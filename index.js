@@ -1,21 +1,40 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const fs = require('fs');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
-const url = 'https://turnerbend.com/WaterLevel.html';
+const url = 'https://turnerbend.com/WaterLevels.html';
 
-axios.get(url).then((response) => {
-    const $ = cheerio.load(response.data);
-    const text = $('body').text();
-    const dateToFind = '05-11-2023';
+axios.get(url, {
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+  }
+}).then((response) => {
+  const $ = cheerio.load(response.data);
+  const text = $('body').text();
 
-    const regex = new RegExp(`${dateToFind}\\s+(\\d+\\.\\d+\\')`, 'g');
-    const match = regex.exec(text);
+  const regex = /(\d{2}[~=\/\s-]\d{2}[~=\/\s-]\d{4})\s*([\d.]+\'?)/g;
 
-    if (match) {
-        console.log(`Water Level for ${dateToFind} is: ${match[1]}`);
-    } else {
-        console.log(`No water level data found for ${dateToFind}.`);
-    }
+  let match;
+  let data = [];
+  while ((match = regex.exec(text)) !== null) {
+    // Replace non-standard date separators with a dash (-)
+    const date = match[1].replace(/[~=\/\s-]/g, '-').trim();
+    data.push({date: date, level: match[2]});
+  }
+
+  const csvWriter = createCsvWriter({
+    path: 'out.csv',
+    header: [
+      {id: 'date', title: 'DATE'},
+      {id: 'level', title: 'LEVEL'}
+    ]
+  });
+  
+  csvWriter.writeRecords(data)
+    .then(() => {
+      console.log('...Done');
+    });
 }).catch((error) => {
-    console.error(`Error: ${error}`);
+  console.error(`Error: ${error}`);
 });
