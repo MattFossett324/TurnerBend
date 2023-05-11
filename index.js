@@ -3,30 +3,19 @@ const cheerio = require('cheerio');
 
 const url = 'https://turnerbend.com/WaterLevel.html';
 
-const targetDate = '05-11-2023'; // Change this to the date you want to check.
+axios.get(url).then((response) => {
+    const $ = cheerio.load(response.data);
+    const text = $('body').text();
+    const dateToFind = '05-11-2023';
 
-axios(url)
-  .then(response => {
-    const html = response.data;
-    const $ = cheerio.load(html);
-    const textNodes = $('body').text(); // Get all the text from the body of the webpage
+    const regex = new RegExp(`${dateToFind}\\s+(\\d+\\.\\d+\\')`, 'g');
+    const match = regex.exec(text);
 
-    const lines = textNodes.split('\n'); // Split the text into lines
-    let waterLevel;
-
-    // Go through each line
-    for (let line of lines) {
-      if (line.includes(targetDate)) { // If the line includes the target date
-        const parts = line.split(targetDate); // Split the line by the target date
-        waterLevel = parts[1].trim(); // The water level should be the second part, remove any extra whitespace
-        break;
-      }
-    }
-
-    if (waterLevel) {
-      console.log(`Water Level for ${targetDate} is: ${waterLevel}`);
+    if (match) {
+        console.log(`Water Level for ${dateToFind} is: ${match[1]}`);
     } else {
-      console.log(`Could not find water level for ${targetDate}`);
+        console.log(`No water level data found for ${dateToFind}.`);
     }
-  })
-  .catch(console.error);
+}).catch((error) => {
+    console.error(`Error: ${error}`);
+});
