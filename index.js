@@ -1,21 +1,23 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const url = 'https://turnerbend.com/WaterLevel.html';
+const url = 'https://turnerbend.com/WaterLevels.html';
 
-axios.get(url).then((response) => {
-    const $ = cheerio.load(response.data);
-    const text = $('body').text();
-    const dateToFind = '05-11-2023';
+axios.get(url, {
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+  }
+}).then((response) => {
+  const $ = cheerio.load(response.data);
+  const text = $('body').text();
 
-    const regex = new RegExp(`${dateToFind}\\s+(\\d+\\.\\d+\\')`, 'g');
-    const match = regex.exec(text);
+  // Match all dates and water levels for the year 2023
+  const regex = /(\d{2}-\d{2}-2023)\s+(\d+\.\d+\')/g;
 
-    if (match) {
-        console.log(`Water Level for ${dateToFind} is: ${match[1]}`);
-    } else {
-        console.log(`No water level data found for ${dateToFind}.`);
-    }
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    console.log(`Water Level for ${match[1]} is: ${match[2]}`);
+  }
 }).catch((error) => {
-    console.error(`Error: ${error}`);
+  console.error(`Error: ${error}`);
 });
