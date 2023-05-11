@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const url = 'https://turnerbend.com/WaterLevels.html';
+const url = 'https://turnerbend.com/WaterLevel.html';
 
 axios.get(url, {
   headers: {
