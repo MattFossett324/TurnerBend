@@ -11,12 +11,13 @@ axios.get(url, {
   const $ = cheerio.load(response.data);
   const text = $('body').text();
 
-  // Match all dates and water levels for the year 2023
-  const regex = /(\d{2}-\d{2}-2023)\s+(\d+\.\d+\')/g;
+  const regex = /(\d{2}[-~=\s]\d{2}[-~=\s]2023)\s+([\d.]+\'?)(?=\s)/g;
 
   let match;
   while ((match = regex.exec(text)) !== null) {
-    console.log(`Water Level for ${match[1]} is: ${match[2]}`);
+    // Replace non-standard date separators with a dash (-)
+    const date = match[1].replace(/[-~=\s]/g, '-');
+    console.log(`Water Level for ${date} is: ${match[2]}`);
   }
 }).catch((error) => {
   console.error(`Error: ${error}`);
